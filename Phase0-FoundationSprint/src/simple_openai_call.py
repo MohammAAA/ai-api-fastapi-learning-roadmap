@@ -1,3 +1,27 @@
+"""
+OpenAI API hello world.
+
+This module provides a simple interface to interact with OpenAI's GPT-4o-mini model
+for text generation tasks. It demonstrates basic usage of the OpenAI client library
+with API key management and response processing.
+
+Example Usage:
+    >>> # Set environment variable first
+    >>> os.environ["OPENAI_API_KEY"] = "xxxxx"
+    >>> # The script will automatically use the API key
+    >>> # and generate a response to "Say hello"
+    >>> # Output will be the generated message content
+
+Note:
+    - Requires OPENAI_API_KEY environment variable to be set
+    - Uses GPT-4o-mini model for free-tier text generation
+    - Designed for learning and demonstration purposes
+
+Author: Mohammed Abdelalim
+Version: 1.0
+License: MIT
+"""
+
 import os
 from openai import OpenAI
 

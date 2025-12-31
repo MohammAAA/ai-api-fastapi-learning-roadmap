@@ -29,7 +29,7 @@ from openai import OpenAI # OpenAI APIs
 #import sys # to fetch CLI input arguments
 import argparse # to define arguments names (better convention than the sys.argv method)
 import time, requests # to measure the latency time of the APIs/models
-from helpers.models_info import pricing_reference # to get the models pricing info
+from Phase0.helpers.models_info import pricing_reference # to get the models pricing info
 from tabulate import tabulate # to create tables
 
 

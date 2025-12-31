@@ -106,7 +106,7 @@ cp .env.example .env
 OPENAI_API_KEY=sk-your_key_here
 GEMINI_API_KEY=your_key_here
 ```
-python-dotenv can load .env values into environment variables using load_dotenv().
+`python-dotenv` can load .env values into environment variables using `load_dotenv()`.
 
 ### Phase 0: Quick start
 #### Run the first OpenAI call

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from src.schemas.benchmark import BenchmarkRequest, BenchmarkResult
-from src.services.openai_benchmark import run_once
+from app.schemas.benchmark import BenchmarkRequest, BenchmarkResult
+from app.services.openai_benchmark import run_once
 
 router = APIRouter(prefix="/benchmark", tags=["benchmark"])
 

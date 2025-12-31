@@ -26,8 +26,7 @@ License: MIT
 """
 import argparse
 from tabulate import tabulate
-
-from src.services.openai_benchmark import run_once
+from app.services.openai_benchmark import run_once
 
 
 def parse_args():
@@ -62,6 +61,9 @@ def parse_args():
     )
     return parser.parse_args()
 
+def print_response(model: str, response: str):
+    print(f"{model} response with chat_completions API: \n {response}\n")
+    print("-----\n")
 
 def main():
     args = parse_args()
@@ -80,7 +82,6 @@ def main():
     # Dynamic table
     # Sort for nicer readability
     benchmark_results.sort(key=lambda x: (x["model"], x["api_type"]))
-    print("-----\n")
     print("Comparison summary: \n")
     print(tabulate(benchmark_results, headers="keys", tablefmt=args.tablefmt))
 

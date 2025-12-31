@@ -1,7 +1,7 @@
 import time
 from openai import OpenAI
-from src.data.models_info import pricing_reference
-from src.core.config import OPENAI_API_KEY
+from app.data.models_info import pricing_reference
+from app.core.config import OPENAI_API_KEY
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 
@@ -16,6 +16,9 @@ def _prices_for(model: str) -> tuple[float, float]:
     return m["input_token_price"], m["output_token_price"]
 
 def run_once(prompt: str, model: str, api_type: str, temperature: float | None = None):
+    # lazy import, this is to avoid circular import:
+    # where 2 files are trying to import from each other at the same time
+    from scripts.api_exploration import print_response
     start = time.perf_counter()
 
     if api_type == "chat_completions":
@@ -27,8 +30,11 @@ def run_once(prompt: str, model: str, api_type: str, temperature: float | None =
         latency_ms = (time.perf_counter() - start) * 1000
         input_tokens = resp.usage.prompt_tokens
         output_tokens = resp.usage.completion_tokens
-        print(f"{model} response with chat_completions API: \n {resp.choices[0].message.content}\n")
-        print("-----\n")
+        response_preview = resp.choices[0].message.content
+        print_response(
+            model = model,
+            response = response_preview
+        )
 
     elif api_type == "responses":
         resp = client.responses.create(
@@ -39,8 +45,11 @@ def run_once(prompt: str, model: str, api_type: str, temperature: float | None =
         latency_ms = (time.perf_counter() - start) * 1000
         input_tokens = resp.usage.input_tokens
         output_tokens = resp.usage.output_tokens
-        print(f"{model} response with responses API: \n {resp.output_text}\n")
-        print("-----\n")
+        response_preview = resp.output_text
+        print_response(
+            model = model,
+            response = response_preview
+        )
 
     else:
         raise ValueError("api_type must be chat_completions or responses")

@@ -1,7 +1,7 @@
 import time
 from datetime import datetime, timezone
-from fastapi import FastAPI, Request
-from app.schemas.operations import operations
+from fastapi import FastAPI, Request, HTTPException
+from app.schemas.operands import operations, CalculateRequest
 
 
 calculation_history: list[dict] = [] # Create an empty list to store the the 10 most recent calculations history
@@ -30,33 +30,25 @@ def get_health():
     return {"status": "ok"}
 
 
-@app.post ("/calculate/{operation}/{operand_a}/{operand_b}")
-def perform_calculation(operation: operations, operand_a: float, operand_b: float):
-    if operation is operations.add:
-        result = operand_a + operand_b
-        output = {
-        "result": result,
-        "operation": operation
-        }
-    elif operation is operations.subtract:
-        result = operand_a - operand_b
-        output = {
-        "result": result,
-        "operation": operation
-        }
-    elif operation is operations.multiply:
-        result = operand_a * operand_b
-        output = {
-        "result": result,
-        "operation": operation
-        }
+@app.post ("/calculate")
+def perform_calculation(payload: CalculateRequest):
+    op = payload.operation
+    if op is operations.add:
+        result = payload.operand_a + payload.operand_b
+    elif op is operations.subtract:
+        result = payload.operand_a - payload.operand_b
+    elif op is operations.multiply:
+        result = payload.operand_a * payload.operand_b
     else:
-        output = {
-            "error": "operation is not valid",
-            "valid_options": "add | subtract | multiply"
+        # Usually unreachable if `operations` is an Enum, but kept for safety.
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid operation. Valid: add | subtract | multiply",
+        )
+    output = {
+        "result": result,
+        "operation": op
         }
-        add_request_logging(output)
-        return output
     add_request_logging(output)
     return output
 

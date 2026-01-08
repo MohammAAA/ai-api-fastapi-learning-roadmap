@@ -16,16 +16,18 @@ async def ask_question(question: str, context: str = None):
         response = client.responses.create(
             model="gpt-4o-mini",
             input=prompt,
-            temperature=1.5,
+            temperature=1.0,
             max_output_tokens=600
         )
-        logger.info("prompt_response",
-                     extra={
-                         "prompt": prompt,
-                         "response": response.output_text,
-                         "tokens": response.usage.total_tokens,
-                         "model": response.model
-                     }) #This seemed to only log the message "prompt_reponse", the extras have not been logged
+        logger.info(
+            "prompt & response:",
+            extra={"extra_data": {
+                "prompt": prompt,
+                "response": response.output_text,
+                "tokens": response.usage.total_tokens,
+                "model": response.model,
+            }}
+        ) #now the extra is being logged as %(extra_data) JSON
         return {
             "answer": response.output_text,
             "tokens": response.usage.total_tokens,

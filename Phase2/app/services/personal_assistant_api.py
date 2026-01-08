@@ -2,9 +2,13 @@ from fastapi import FastAPI, HTTPException
 from openai import OpenAI, RateLimitError
 import os
 import logging
-from app.core.logging_config import setup_logging
+from app.core.file_logging_config import setup_logging
+from app.core.csv_logging_config import setup_csv_logging
+
 
 setup_logging() # initialize the logging configuration
+setup_csv_logging("logs/assistant_prompts.csv")
+
 logger = logging.getLogger(__name__)
 app = FastAPI()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

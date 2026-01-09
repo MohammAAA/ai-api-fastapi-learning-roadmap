@@ -5,11 +5,9 @@ from logging.handlers import RotatingFileHandler
 def setup_logging() -> None:
     os.makedirs("logs", exist_ok=True)
 
-    root = logging.getLogger() # Create a logger instance called root
-    root.setLevel(logging.INFO)
-    logging.getLogger("httpx").setLevel(logging.WARNING) # This promotes the httpx log messages to be of WARNING severity so that these logs are not shown in our log file
-
-
+    logger = logging.getLogger("appLoger.file") # Create a logger instance called appLogger.file
+    logger.setLevel(logging.INFO)
+    logger.propagate = False  # don't send to root (propagate = False stops the record from bubbling up to ancestor loggers (like root), which is a common way to prevent duplication and keep outputs separate.)
     handler = RotatingFileHandler(
         "logs/assistant_requests.log",
         maxBytes=5_000_000,
@@ -20,5 +18,5 @@ def setup_logging() -> None:
     handler.setFormatter(formatter)
 
     # avoid duplicate handlers on reload
-    if not any(isinstance(h, RotatingFileHandler) for h in root.handlers):
-        root.addHandler(handler)
+    if not any(isinstance(h, RotatingFileHandler) for h in logger.handlers):
+        logger.addHandler(handler)

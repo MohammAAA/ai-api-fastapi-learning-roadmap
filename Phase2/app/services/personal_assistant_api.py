@@ -9,7 +9,8 @@ from app.core.csv_logging_config import setup_csv_logging
 setup_logging() # initialize the logging configuration
 setup_csv_logging("logs/assistant_prompts.csv")
 
-logger = logging.getLogger(__name__)
+txt_logger = logging.getLogger("appLoger.file")
+csv_logger = logging.getLogger("appLoger.csv")
 app = FastAPI()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -23,7 +24,7 @@ async def ask_question(question: str, context: str = None):
             temperature=1.0,
             max_output_tokens=600
         )
-        logger.info(
+        txt_logger.info(
             "prompt & response:",
             extra={"extra_data": {
                 "prompt": prompt,
@@ -31,7 +32,16 @@ async def ask_question(question: str, context: str = None):
                 "tokens": response.usage.total_tokens,
                 "model": response.model,
             }}
-        ) #now the extra is being logged as %(extra_data) JSON
+        ) # This will be logged to the .txt file
+        csv_logger.info(
+            "prompt_row",
+            extra={
+                "prompt": prompt,
+                "response": response.output_text,
+                "model": response.model,
+                "totalTokens": response.usage.total_tokens
+            }
+        ) # This will be logged to the .csv file
         return {
             "answer": response.output_text,
             "tokens": response.usage.total_tokens,

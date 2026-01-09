@@ -32,8 +32,9 @@ class CSVPromptHandler(logging.Handler):
 
 
 def setup_csv_logging(csv_path: str = "logs/assistant_prompts.csv", level: int = logging.INFO) -> None:
-    root = logging.getLogger()
-    root.setLevel(level)
+    logger = logging.getLogger("appLoger.csv")
+    logger.setLevel(level)
+    logger.propagate = False  # don't send to root
     logging.getLogger("httpx").setLevel(logging.WARNING) # This promotes the httpx log messages to be of WARNING severity so that these logs are not shown in our log file
 
 
@@ -41,5 +42,5 @@ def setup_csv_logging(csv_path: str = "logs/assistant_prompts.csv", level: int =
     handler.setLevel(level)
 
     # Avoid duplicate handlers (common with reload)
-    if not any(isinstance(h, CSVPromptHandler) and getattr(h, "filename", None) == csv_path for h in root.handlers):
-        root.addHandler(handler)
+    if not any(isinstance(h, CSVPromptHandler) and getattr(h, "filename", None) == csv_path for h in logger.handlers):
+        logger.addHandler(handler)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from google import genai
 from google.genai import errors
 from openai import OpenAI, RateLimitError
@@ -16,24 +16,29 @@ client_gemini = genai.Client()
 client_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.post ("/review-code")
-async def code_reviewer(payload: CodeReviewRequest):
+async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus: str = Form()):
     try:
-        prompt = f"you are an experienced {payload.language} developer and architect with 15+ years of experience. Perform comprehensive code review for the following {payload.language} code \n\n {payload.code}"
-        response = client_gemini.models.generate_content(model="gemini-2.5-pro", contents=prompt)
+        # Read the raw code content
+        code_bytes = await file.read()
+        code_text = code_bytes.decode("utf-8")
+        prompt = f"you are an experienced {language} developer and architect with 15+ years of experience. Perform comprehensive code review for the following {language} code, provide more focus on the {focus} \n\n {code_text}"
+        response = client_gemini.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         csv_logger.info(
             "prompt_row",
             extra={
                 "prompt": prompt,
                 "response": response.text,
-                "model": response.model,
+                "model": "gemini-2.5-flash",
                 "totalTokens": response.usage_metadata.total_token_count
             }
         ) # This will be logged to the .csv file
         return {
             "answer": response.text,
             "tokens": response.usage_metadata.total_token_count,
-            "model": response.model
+            "model": "gemini-2.5-flash"
         }
+    except UnicodeDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid file encoding. Please upload UTF-8 text.")
     except errors.ClientError as e: # Client errors handling
     # 429 is the HTTP status code for Rate Limit Exceeded
         if e.code == 429:
@@ -72,9 +77,8 @@ async def code_reviewer(payload: CodeReviewRequest):
 
 
 
-""" Note: This doesn't work as the request returns a JSON error indicating an invalid control characeter:
-This is because JSON payload contains unescaped newlines (\n) inside the string value for "code". In standard JSON, string values cannot contain literal newlines (line breaks); they must be escaped as "\n".
-Solution: we must escape the newlines in your request body so the entire Python code is a single line in the JSON source, with \n representing the line breaks.
-OR, we modify the code so that we upload the code to be reviewed as a file instead of passing it as a JSON body """
-
+""" Problem: JSON is fragile for raw code because of quotes, newlines, and tabs.
+Solution: Change our endpoint to accept the code as a file upload..
+This way, the client sends the file content as-is (binary/text stream) and FastAPI handles it safely without any JSON parsing issues.
+"""
 

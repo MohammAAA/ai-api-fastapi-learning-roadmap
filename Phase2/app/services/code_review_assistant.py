@@ -6,6 +6,8 @@ import logging
 import os
 from app.core.csv_logging_config import setup_csv_logging
 from app.schemas.request_parameters import FocusOptions, CodeReviewRequest
+import time
+
 
 # Initialize the logger configs
 setup_csv_logging("logs/Code_review_assistant_logs.csv")
@@ -15,9 +17,16 @@ app = FastAPI()
 client_gemini = genai.Client()
 client_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+
+""" Problem: JSON is fragile for raw code because of quotes, newlines, and tabs.
+Solution: Change our endpoint to accept the code as a file upload..
+This way, the client sends the file content as-is (binary/text stream) and FastAPI handles it safely without any JSON parsing issues.
+"""
 @app.post ("/review-code")
 async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus: str = Form()):
     try:
+        # start to measure service time
+        start = time.perf_counter()
         # Read the raw code content
         code_bytes = await file.read()
         code_text = code_bytes.decode("utf-8")
@@ -32,10 +41,12 @@ async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus
                 "totalTokens": response.usage_metadata.total_token_count
             }
         ) # This will be logged to the .csv file
+        latency_ms = (time.perf_counter() - start) * 1000
         return {
             "answer": response.text,
             "tokens": response.usage_metadata.total_token_count,
-            "model": "gemini-2.5-flash"
+            "model": "gemini-2.5-flash",
+            "latency": latency_ms
         }
     except UnicodeDecodeError:
         raise HTTPException(status_code=400, detail="Invalid file encoding. Please upload UTF-8 text.")
@@ -59,10 +70,12 @@ async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus
                         "totalTokens": response_openai.usage.total_tokens
                     }
                 ) # This will be logged to the .csv file
+                latency_ms = (time.perf_counter() - start) * 1000
                 return {
                     "answer": response_openai.output_text,
                     "tokens": response_openai.usage.total_tokens,
-                    "model": response_openai.model
+                    "model": response_openai.model,
+                    "latency": latency_ms
                 }
             except RateLimitError: # Gemini Client error (RateLimit) handling
                 raise HTTPException(status_code=429, detail=" OpenAI rate limit exceeded .. exiting")
@@ -76,9 +89,4 @@ async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus
         print(f"Gemini Unexpected error: {e}")
 
 
-
-""" Problem: JSON is fragile for raw code because of quotes, newlines, and tabs.
-Solution: Change our endpoint to accept the code as a file upload..
-This way, the client sends the file content as-is (binary/text stream) and FastAPI handles it safely without any JSON parsing issues.
-"""
 

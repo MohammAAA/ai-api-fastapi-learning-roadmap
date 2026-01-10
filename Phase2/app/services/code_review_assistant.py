@@ -1,11 +1,11 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from google import genai
 from google.genai import errors
-from openai import OpenAI, RateLimitError
+from openai import AsyncOpenAI, RateLimitError # AsyncOpenAI to await the asynchronous APIs by OpenAI
 import logging
 import os
 from app.core.csv_logging_config import setup_csv_logging
-from app.schemas.request_parameters import FocusOptions, CodeReviewRequest
+from app.schemas.request_parameters import FocusOptions, CodeReviewRequest, languageOptions
 import time
 
 
@@ -15,7 +15,7 @@ csv_logger = logging.getLogger("appLoger.csv")
 
 app = FastAPI()
 client_gemini = genai.Client()
-client_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client_openai = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 """ Problem: JSON is fragile for raw code because of quotes, newlines, and tabs.
@@ -23,7 +23,7 @@ Solution: Change our endpoint to accept the code as a file upload..
 This way, the client sends the file content as-is (binary/text stream) and FastAPI handles it safely without any JSON parsing issues.
 """
 @app.post ("/review-code")
-async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus: str = Form()):
+async def code_reviewer(file: UploadFile = File(..., description="The code file to review"), language: languageOptions = Form(), focus: FocusOptions = Form()):
     try:
         # start to measure service time
         start = time.perf_counter()
@@ -31,7 +31,7 @@ async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus
         code_bytes = await file.read()
         code_text = code_bytes.decode("utf-8")
         prompt = f"you are an experienced {language} developer and architect with 15+ years of experience. Perform comprehensive code review for the following {language} code, provide more focus on the {focus} \n\n {code_text}"
-        response = client_gemini.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        response = await client_gemini.aio.models.generate_content(model="gemini-2.5-flash", contents=prompt)
         csv_logger.info(
             "prompt_row",
             extra={
@@ -56,7 +56,7 @@ async def code_reviewer(file: UploadFile = File(), language: str = Form(), focus
             print("Gemini rate limit exceeded! Fall-back to OpenAI model ...")
             try:
                 
-                response_openai = client_openai.responses.create(
+                response_openai = client_openai.aresponses.create(
                     model="gpt-4o-mini",
                     input=prompt,
                     temperature=1.0,

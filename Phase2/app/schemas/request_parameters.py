@@ -7,6 +7,8 @@ class FocusOptions(str, Enum):
     security = "security"
     style = "style"
     architecture = "architecture"
+    scalability = "scalability"
+    best_practices = "best practices"
 
 class languageOptions(str, Enum):
     c = "C"
@@ -15,6 +17,5 @@ class languageOptions(str, Enum):
 
 
 class CodeReviewRequest(BaseModel):
-    code: str
     language: languageOptions
     focus: FocusOptions

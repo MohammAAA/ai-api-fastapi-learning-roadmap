@@ -1,7 +1,6 @@
 import os
 from fastapi import FastAPI
-from openai import AsyncOpenAI, RateLimitError, OpenAI
-from datetime import datetime
+from openai import OpenAI
 
 app = FastAPI()
 client_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))

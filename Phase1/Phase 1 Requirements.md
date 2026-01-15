@@ -58,18 +58,4 @@ Build a small Python CLI script that sends at least one HTTP **GET** request and
 - A short note added to `docs/rest_concepts.md` explaining what was observed about:
     - status codes,
     - headers,
-    - request body vs response body.[^1]
-
-If you tell which API you want to test against (httpbin vs a real public users API), a concrete CLI + code skeleton that meets these requirements can be provided.
-<span style="display:none">[^2][^3][^4]</span>
-
-<div align="center">⁂</div>
-
-[^1]: AI_API_Learning_Roadmap.md
-
-[^2]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/86423868/00de22ac-cc2d-43ec-91bc-292d1395b1bc/AI_API_Learning_Roadmap.md
-
-[^3]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/86423868/40f0520d-b857-498d-8004-5f46765ffbbc/AI_API_Learning_Roadmap.md
-
-[^4]: https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/86423868/f672760e-1795-42de-a708-f027cccf50c3/AI_API_Learning_Roadmap.md
-
+    - request body vs response body.

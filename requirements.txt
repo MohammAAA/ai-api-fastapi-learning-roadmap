@@ -8,3 +8,9 @@ uvicorn==0.40.0
 dotenv==0.9.9
 google-genai==1.57.0
 python-multipart==0.0.21
+langchain-community==0.4.1
+pypdf==6.6.0
+langchain-openai
+qdrant-client==1.16.2
+langchain_qdrant==1.1.0
+fastembed==0.7.4

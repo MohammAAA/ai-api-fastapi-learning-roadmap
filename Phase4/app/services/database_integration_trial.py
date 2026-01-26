@@ -17,10 +17,31 @@ client_openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 DATABASE_URL = "sqlite:///./test.db"
 engine = create_engine(DATABASE_URL) # The Engine's role is to connect our Python code to the real database. We specify the database type (e.g.: SQLite) and the sqlalchemy handles all the SQL work
 
-SessionLocal = sessionmaker(bind=engine)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False) # This is a class that is acting like a callable factory function. Instead of calling Session(engine=my_engine, autoflush=False, autocommit=False) directly with all the config, we configure sessionmaker once, then call it repeatedly.
+
+# The following is a test code for debugging the (yield), the code works, however if an exception occurs the yield will not return to its last stack pointer so the db.close() will not be executed. So it is better to be in (finally:)
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         print("LOG: will yield the db now")
+#         yield db
+#         print("LOG: resuming get_db()")
+#         db.close()
+#         print("LOG: db session closed")
+
+#     except NameError as e:
+#         pass
+
 
 def get_db():
-    return SessionLocal()
+    db = SessionLocal()
+    try:
+        print("LOG: will yield the db now")
+        yield db
+        print("LOG: resuming get_db()")
+    finally: # The following code block will be executed either after the function (chat()) returns, an exception occurs in chat(), or just after the function get_db() itself returns (e.g.: if we use "return db" instead of "yield db" ... however, never do this logical mistake)
+        db.close()
+        print("LOG: db session closed")
 
 class Conversation(Base): # This class is inherited from the parent ORM class
     __tablename__ = "conversations"
@@ -36,6 +57,7 @@ Base.metadata.create_all(engine)  # Creates the table, the data class (Conversat
 def chat(conversation_id: str, message: str, db: Session = Depends(get_db)):
     user_message = [{"role": "user",
                     "message": message}] # I want to treat json_message as a list of dicts so that I can append it to another list (i.e.: the conversation list)
+    print("LOG: entered the /chat endpoint")
     json_message_serialized = json.dumps([user_message]) # serialize the python object to JSON string
     conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()
     log_message = f"Conversation {conversation_id} has been just loaded"
@@ -70,7 +92,7 @@ def chat(conversation_id: str, message: str, db: Session = Depends(get_db)):
     json_stored_messages = json.dumps(stored_messages)
     # commit the conversation to be saved to the database
     conv.messages = json_stored_messages
-    db.add(conv)    
+    # db.add(conv) # This is optional, as (conv) came from a query; it’s already in the session so no need for adding   
     db.commit()
 
     # structure the output that will be returned to the user
@@ -82,6 +104,7 @@ def chat(conversation_id: str, message: str, db: Session = Depends(get_db)):
         "conversation_history": conv.messages,
         "response": gpt_response.output_text
     }
+    print("LOG: returning to get_db()")
     # output = json.dumps(output) This line will fail ("TypeError: Object of type datetime is not JSON serializable")
     # A simple fix is to just return the output as is and fastAPI will serialize it for us (it uses encoder utilities (ex.: jsonable_encoder) that helps converting non-JSON-compatible objects to JSON-compatible data) 
     return output

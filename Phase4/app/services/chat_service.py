@@ -6,7 +6,7 @@ Why: Business logic separated from HTTP layer (easy to test and reuse).
 import json
 from sqlalchemy.orm import Session
 from app.models.conversation import Conversation
-from app.services.openai_service import get_ai_response
+from app.services.ai_service import get_ai_response
 
 def get_or_create_conversation(db: Session, conversation_id: str, user_id: str) -> Conversation:
     """Fetch or create conversation."""

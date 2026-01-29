@@ -36,6 +36,8 @@ async def get_ai_response(conversation_json: str) -> str:
                 raise HTTPException(status_code=500, detail="OpenAI internal server error .. exiting")
         else:
             print(f"Gemini API Error: {e} .. exiting")
+            raise HTTPException(status_code=502, detail=f"Gemini API Error: {e}")
+
 
     except Exception as e: # Gemini Server errors handling
         print(f"Gemini Unexpected error: {e}")

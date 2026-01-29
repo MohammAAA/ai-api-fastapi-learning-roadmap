@@ -13,12 +13,12 @@ from app.services.chat_service import process_chat
 router = APIRouter(prefix="/api/v1", tags=["chat"])
 
 @router.post("/chat")
-def chat(
+async def chat(
     conversation_id: str,
     message: str,
     db: Session = Depends(get_db),
     user_id: str = Depends(verify_token)
 ):
     """Chat endpoint."""
-    result = process_chat(db, conversation_id, message, user_id)
+    result = await process_chat(db, conversation_id, message, user_id)
     return result

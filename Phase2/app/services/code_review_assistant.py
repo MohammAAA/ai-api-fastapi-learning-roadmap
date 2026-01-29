@@ -77,7 +77,7 @@ async def code_reviewer(file: UploadFile = File(..., description="The code file 
                     "model": response_openai.model,
                     "latency": latency_ms
                 }
-            except RateLimitError: # Gemini Client error (RateLimit) handling
+            except RateLimitError: # OpenAI Client error (RateLimit) handling
                 raise HTTPException(status_code=429, detail=" OpenAI rate limit exceeded .. exiting")
             except Exception as e: # OpenAI server errors handling
                 logging.error(f"API error: {e}") # Internal loggings for debugging purposes, the user does not have access to it.

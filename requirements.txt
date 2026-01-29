@@ -14,3 +14,4 @@ langchain-openai
 qdrant-client==1.16.2
 langchain_qdrant==1.1.0
 fastembed==0.7.4
+locust==2.43.1

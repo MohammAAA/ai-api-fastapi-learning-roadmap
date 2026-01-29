@@ -26,7 +26,7 @@ def append_user_message(messages_json: str, user_message: dict) -> str:
     messages.append(user_message)
     return json.dumps(messages)
 
-def process_chat(db: Session, conversation_id: str, message: str, user_id: str):
+async def process_chat(db: Session, conversation_id: str, message: str, user_id: str):
     """Full chat processing."""
     user_msg = {"role": "user", "message": message}
     
@@ -38,7 +38,7 @@ def process_chat(db: Session, conversation_id: str, message: str, user_id: str):
     
     # Get AI response
     stored_messages = json.loads(conv.messages)
-    ai_response_text = get_ai_response(json.dumps(stored_messages))
+    ai_response_text = await get_ai_response(json.dumps(stored_messages))
     
     # Append AI response
     ai_msg = {"role": "assistant", "message": ai_response_text}
